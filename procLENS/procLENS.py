@@ -1,11 +1,7 @@
 from subprocess import check_call as cmd
 
 
-def LENS_filelist(varname,memberlist,
-    filepath='',
-    freq='monthly',
-    model='pop',
-    realm='ecosys',):
+def filelist(varname,memberlist,filepath='',freq='monthly',model='pop',realm='ecosys'):
 
     if freq != 'monthly' and freq != 'annual':
         raise  ValueError('Frequency given: {}.\n  Frequency must be \'monthly\' or \'annual\'.'.format(freq))
@@ -66,9 +62,12 @@ def LENS_filelist(varname,memberlist,
     return filelist_BRCP_a,filelist_BRCP_b,filelist_BRCP_c,filelist_B20_a,filelist_B20_b
 
 
-def hpss_download(varname, filelist):
+def hpss_download(varname, filelist, localdir):
     
     # This function downloads CESM-LENS variables off of hpss 
+
+    cmd('mkdir -p {}{}'.format(localdir,varname))
+    cmd('cd {}{}'.format(localdir,varname))
 
     for hpss_file in filelist:
 
