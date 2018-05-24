@@ -1,7 +1,9 @@
 from subprocess import check_call as cmd
+from subprocess import Popen
+import os
 
 
-def filelist(varname,memberlist,filepath='',freq='monthly',model='pop',realm='ecosys'):
+def filelist(varname,memberlist,filepath='',freq='monthly',model='pop',module='ecosys'):
 
     if freq != 'monthly' and freq != 'annual':
         raise  ValueError('Frequency given: {}.\n  Frequency must be \'monthly\' or \'annual\'.'.format(freq))
@@ -11,11 +13,11 @@ def filelist(varname,memberlist,filepath='',freq='monthly',model='pop',realm='ec
 
     if freq == 'annual':
 
-        suffix_BRCP_a = '.{}.h.{}.nyear1.{}.2006-2080.nc'.format(model, realm, varname)
-        suffix_BRCP_b = '.{}.h.{}.nyear1.{}.2081-2100.nc'.format(model, realm, varname)
-        suffix_BRCP_c = '.{}.h.{}.nyear1.{}.2006-2100.nc'.format(model, realm, varname)
-        suffix_B20_a = '.{}.h.{}.nyear1.{}.1850-2005.nc'.format(model, realm, varname)
-        suffix_B20_b = '.{}.h.{}.nyear1.{}.1920-2005.nc'.format(model, realm, varname)
+        suffix_BRCP_a = '.{}.h.{}.nyear1.{}.2006-2080.nc'.format(model, module, varname)
+        suffix_BRCP_b = '.{}.h.{}.nyear1.{}.2081-2100.nc'.format(model, module, varname)
+        suffix_BRCP_c = '.{}.h.{}.nyear1.{}.2006-2100.nc'.format(model, module, varname)
+        suffix_B20_a = '.{}.h.{}.nyear1.{}.1850-2005.nc'.format(model, module, varname)
+        suffix_B20_b = '.{}.h.{}.nyear1.{}.1920-2005.nc'.format(model, module, varname)
 
     if freq == 'monthly':
 
@@ -31,7 +33,7 @@ def filelist(varname,memberlist,filepath='',freq='monthly',model='pop',realm='ec
     filelist_B20_a = []
     filelist_B20_b = []
 
-    for member in memberList:
+    for member in memberlist:
 
         if member < 100:
 
@@ -62,13 +64,22 @@ def filelist(varname,memberlist,filepath='',freq='monthly',model='pop',realm='ec
     return filelist_BRCP_a,filelist_BRCP_b,filelist_BRCP_c,filelist_B20_a,filelist_B20_b
 
 
-def hpss_download(varname, filelist, localdir):
+def hpss_transfer(varname, filelist, localdir):
     
     # This function downloads CESM-LENS variables off of hpss 
 
-    cmd('mkdir -p {}{}'.format(localdir,varname))
-    cmd('cd {}{}'.format(localdir,varname))
+    cmd('mkdir -p {}{}'.format(localdir,varname), shell = True)
+    os.chdir('{}{}'.format(localdir,varname))
+
+    cmd_list = []
 
     for hpss_file in filelist:
 
-        cmd('nohup hsi {} > {}.out 2>&1'.format(hpss_file,varname),shell=True)
+        cmd_list = cmd_list + ['hsi cget {}'.format(hpss_file)]
+
+    with open('{}_filelist.sh'.format(varname), 'w') as file:
+        file.writelines('\n'.join(cmd_list))
+
+    Popen(['nohup','bash','{}_filelist.sh'.format(varname) ],
+                 stdout=open(('{}_out.log'.format(varname)), 'w'),
+                 stderr=open(('{}_err.log'.format(varname)), 'a'))
