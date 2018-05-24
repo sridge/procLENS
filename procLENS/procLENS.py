@@ -80,6 +80,10 @@ def hpss_transfer(varname, filelist, localdir):
     with open('{}_filelist.sh'.format(varname), 'w') as file:
         file.writelines('\n'.join(cmd_list))
 
-    Popen(['nohup','bash','{}_filelist.sh'.format(varname) ],
+    proc = Popen(['nohup','bash','{}_filelist.sh'.format(varname) ],
                  stdout=open(('{}_out.log'.format(varname)), 'w'),
                  stderr=open(('{}_err.log'.format(varname)), 'a'))
+
+    with open('{}_proc.log'.format(varname), 'w') as file:
+        file.writelines(str(proc.pid))
+
