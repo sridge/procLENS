@@ -1,7 +1,9 @@
+from subprocess import Popen
+import os
+
 def hpss(varname, filelist, localdir):
     
     # This function downloads CESM-LENS variables off of hpss 
-
     Popen(['mkdir','-p','{}{}'.format(localdir,varname)])
     
     os.chdir('{}{}'.format(localdir,varname))
